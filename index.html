@@ -1,0 +1,587 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Times Table Duel</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@500;700;800&display=swap">
+<style>
+/* Layout: a school-notebook page on graph paper; one centred column; game board = meter | cards | meter */
+:root{
+  --paper:#f4f7fb; --grid:#dfe7f1; --ink:#1f2a44; --ink-deep:#0f1729; --muted:#5d6883; --line:#c6d0de; --card:#ffffff;
+  --p1:#2f6fe4; --p2:#e5822a;
+  --ok:#1f9d58; --ok-bg:#d6f5df; --bad:#e0435a; --bad-bg:#fde0e7;
+  --f-display:"Baloo 2","Trebuchet MS",system-ui,sans-serif;
+  --f-body:"Nunito",system-ui,-apple-system,"Segoe UI",sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{background:var(--paper)}
+body{
+  background-color:var(--paper);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:24px 24px;
+  color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.45;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  min-height:100%;
+}
+button{font:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+button:focus-visible,input:focus-visible{outline:3px solid var(--p1);outline-offset:3px}
+h1,h2,h3,h4{font-family:var(--f-display);margin:0;line-height:1.1;text-wrap:balance}
+
+.screen{max-width:760px;margin:0 auto;padding-block:24px 40px;display:flex;flex-direction:column;gap:20px}
+.panel{background:var(--card);border:2px solid var(--ink);border-radius:16px;box-shadow:4px 4px 0 var(--ink);padding:20px;display:flex;flex-direction:column;gap:20px}
+.narrow{max-width:480px;width:100%;margin:0 auto}
+
+/* Start */
+.brand{text-align:center;padding-top:8px}
+.brand h1{font-size:clamp(40px,10vw,64px);font-weight:800;letter-spacing:-.5px}
+.brand h1 em{font-style:normal;color:var(--p2)}
+.brand h1 .x{color:var(--p1)}
+.brand p{margin:6px 0 0;color:var(--muted);font-weight:700}
+fieldset{border:0;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;min-width:0}
+legend{font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);padding:0;margin-bottom:8px}
+.seg{display:flex;flex-wrap:wrap;gap:8px}
+.vh{position:absolute;opacity:0;width:1px;height:1px;pointer-events:none}
+.seg label{border:2px solid var(--line);border-radius:999px;padding:8px 16px;font-weight:800;background:var(--card);user-select:none;cursor:pointer}
+.seg input:checked+label{background:var(--ink);border-color:var(--ink);color:var(--card)}
+.seg input:focus-visible+label{outline:3px solid var(--p1);outline-offset:2px}
+.toggles{display:flex;flex-wrap:wrap;gap:12px 28px}
+.switch{display:flex;align-items:center;gap:10px;font-weight:800;cursor:pointer;user-select:none}
+.switch .sw{width:48px;height:28px;border-radius:999px;background:var(--line);position:relative;transition:background .2s;flex:none}
+.switch .sw::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:var(--card);transition:transform .2s;box-shadow:0 1px 2px rgba(15,23,41,.3)}
+.switch input:checked+.sw{background:var(--ok)}
+.switch input:checked+.sw::after{transform:translateX(20px)}
+.switch input:focus-visible+.sw{outline:3px solid var(--p1);outline-offset:2px}
+.links{display:flex;justify-content:center;gap:24px;flex-wrap:wrap}
+.link{background:none;border:0;font-weight:800;color:var(--p1);text-decoration:underline;text-underline-offset:4px;padding:6px}
+
+.btn{font-family:var(--f-display);font-size:22px;font-weight:700;background:var(--ink);color:var(--card);border:0;border-radius:12px;padding:10px 26px;box-shadow:0 4px 0 var(--ink-deep);transition:transform .08s}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--ink-deep)}
+.btn.big{width:100%;font-size:26px;padding:12px}
+.btn.ghost{background:var(--card);color:var(--ink);border:2px solid var(--ink);box-shadow:0 4px 0 var(--ink)}
+.btn-row{display:flex;justify-content:center;gap:12px;flex-wrap:wrap}
+
+/* Names */
+.name-form label{font-family:var(--f-display);font-size:26px;font-weight:700}
+.name-form input{font-family:var(--f-display);font-size:32px;font-weight:700;color:var(--ink);width:100%;border:2px dashed var(--line);border-radius:14px;padding:14px 16px;background:var(--paper)}
+.name-form input:focus{border-color:var(--ink);border-style:solid;outline:none}
+.tag-p{display:inline-block;width:14px;height:14px;border-radius:50%;margin-right:8px;vertical-align:middle}
+
+/* Game */
+.game{--pc:var(--p1);gap:14px}
+.game[data-p="1"]{--pc:var(--p2)}
+.g-top{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px}
+.timer{font-family:var(--f-display);font-size:18px;font-weight:700;color:var(--muted);display:flex;align-items:baseline;gap:8px}
+.timer b{font-size:38px;color:var(--ink);font-variant-numeric:tabular-nums;min-width:1.3em}
+.timer.low b{color:var(--bad);animation:pulse 1s infinite}
+@keyframes pulse{50%{transform:scale(1.12)}}
+.turn{text-align:center;display:flex;flex-direction:column}
+.turn span{font-size:14px;font-weight:800;color:var(--muted);font-variant-numeric:tabular-nums}
+.turn strong{font-family:var(--f-display);font-size:28px;color:var(--pc);overflow-wrap:anywhere}
+.quit{justify-self:end;position:relative;overflow:hidden;border:2px solid var(--line);background:var(--card);border-radius:999px;padding:6px 14px;font-size:13px;font-weight:800;color:var(--muted);user-select:none;-webkit-user-select:none;touch-action:none}
+.quit-fill{position:absolute;inset:0 auto 0 0;width:0;background:var(--bad-bg);transition:width .2s}
+.quit.holding .quit-fill{width:100%;transition:width 1.5s linear}
+.quit.holding{border-color:var(--bad);color:var(--bad)}
+.quit-label{position:relative}
+.g-next{display:flex;justify-content:center;min-height:0}
+.btn.next{font-size:24px;padding:12px 30px;background:var(--pc);box-shadow:0 4px 0 var(--ink-deep);animation:pop .25s ease-out}
+@keyframes pop{from{transform:scale(.85);opacity:0}}
+.g-board{display:grid;grid-template-columns:64px minmax(0,1fr) 64px;gap:14px;align-items:stretch}
+.side{--sc:var(--p1);display:flex;flex-direction:column;align-items:center;gap:6px;opacity:.5;transition:opacity .2s}
+#side-1{--sc:var(--p2)}
+.side.active{opacity:1}
+.side-score{font-size:13px;font-weight:800;font-variant-numeric:tabular-nums;white-space:nowrap}
+.meter{flex:1;width:38px;min-height:190px;border:2px solid var(--ink);border-radius:12px;background:var(--card);position:relative;overflow:hidden}
+.side.active .meter{outline:3px solid var(--sc);outline-offset:3px}
+.fill{position:absolute;left:0;right:0;bottom:0;height:0;background:var(--sc);transition:height .5s ease-out,background .2s}
+.side.ok .fill{background:var(--ok)}
+.side.bad .fill{background:var(--bad)}
+.side.bad .meter{outline-color:var(--bad)}
+.side.ok .meter{outline-color:var(--ok)}
+.side-name{font-size:13px;font-weight:800;text-align:center;max-width:64px;overflow-wrap:anywhere;color:var(--sc)}
+.center{display:flex;flex-direction:column;gap:14px;min-width:0}
+.card{background:var(--card);border:2px solid var(--ink);border-radius:18px;box-shadow:4px 4px 0 var(--ink);font-family:var(--f-display);font-weight:800;font-size:clamp(44px,11vw,84px);line-height:1.15;text-align:center;padding:16px 10px;font-variant-numeric:tabular-nums;transition:background .2s,border-color .2s}
+.card.a{border-style:dashed;min-height:calc(1.15em + 36px)}
+.card .ph{color:var(--line)}
+.card.ok{background:var(--ok-bg);border-color:var(--ok);border-style:solid;box-shadow:4px 4px 0 var(--ok)}
+.card.bad{background:var(--bad-bg);border-color:var(--bad);border-style:solid;box-shadow:4px 4px 0 var(--bad)}
+.card.small-txt{font-size:clamp(30px,7vw,52px)}
+.shake{animation:shake .35s}
+@keyframes shake{20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+.g-note{text-align:center;font-family:var(--f-display);font-size:22px;font-weight:700;min-height:1.4em}
+.g-note.ok{color:var(--ok)}.g-note.bad{color:var(--bad)}
+.pad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:420px;width:100%;margin:0 auto}
+.key{font-family:var(--f-display);font-size:30px;font-weight:700;padding:8px 0;background:var(--card);border:2px solid var(--ink);border-radius:14px;box-shadow:0 4px 0 var(--ink);user-select:none;touch-action:manipulation}
+.key:active{transform:translateY(3px);box-shadow:0 1px 0 var(--ink)}
+.key.done{background:var(--ok);color:var(--card);border-color:var(--ink)}
+.key.back{color:var(--muted)}
+
+/* Results & lists */
+.result-title{font-size:clamp(40px,9vw,60px);font-weight:800;text-align:center}
+.result-title.win{color:var(--ok)}
+.result-title.draw{color:var(--p1)}
+.list-title{font-size:36px;font-weight:800}
+.tag{font-size:13px;font-weight:800;color:var(--muted);letter-spacing:.04em;text-transform:uppercase}
+.result-head{display:flex;flex-direction:column;align-items:center;gap:6px}
+.rows{display:flex;flex-direction:column;gap:12px;margin:0;padding:0;list-style:none}
+.row{display:flex;align-items:baseline;gap:8px;font-weight:800;font-size:18px}
+.row .who{overflow-wrap:anywhere}
+.row .dots{flex:1;border-bottom:2px dotted var(--line);transform:translateY(-5px);min-width:20px}
+.row .val{font-variant-numeric:tabular-nums;white-space:nowrap}
+.row .val small{color:var(--muted);font-weight:700}
+.row-wrap{display:flex;flex-direction:column;gap:2px}
+.row-wrap .tag{font-size:11px}
+.big-scores .row{font-family:var(--f-display);font-size:26px}
+.empty{color:var(--muted);font-weight:700;text-align:center;padding:12px 0}
+.mistakes{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}
+.mistakes h4{font-size:20px;margin-bottom:6px}
+.mistakes ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.mistakes li{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px;background:var(--paper);border-radius:10px;padding:6px 10px}
+.mistakes li b{font-family:var(--f-display);font-size:20px;font-variant-numeric:tabular-nums}
+.mistakes li span{font-size:13px;color:var(--bad);font-weight:800}
+.perfect{color:var(--ok);font-weight:800}
+.section-label{font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+
+/* Quit dialog */
+.modal{position:fixed;inset:0;background:rgba(15,23,41,.55);display:grid;place-items:center;z-index:50;padding:16px max(16px,env(safe-area-inset-right,0px)) 16px max(16px,env(safe-area-inset-left,0px))}
+.dialog{max-width:400px;width:100%;text-align:center}
+.dialog h3{font-size:30px}
+.dialog p{margin:0;color:var(--muted);font-weight:700}
+.dialog .btn-row{justify-content:space-between;align-items:center}
+.btn.quiet{background:none;color:var(--bad);box-shadow:none;font-size:16px;padding:8px 4px;text-decoration:underline;text-underline-offset:4px}
+
+#confetti{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:40}
+
+@media (max-width:480px){
+  .g-board{grid-template-columns:52px minmax(0,1fr) 52px;gap:10px}
+  .meter{width:30px;min-height:160px}
+  .timer b{font-size:30px}
+  .turn strong{font-size:22px}
+  .key{font-size:26px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<canvas id="confetti" hidden></canvas>
+
+<!-- START -->
+<section class="screen" id="s-start">
+  <header class="brand">
+    <h1>Times Table <span class="x">×</span> <em>Duel</em></h1>
+    <p>Two players, one screen. Who knows the table better?</p>
+  </header>
+  <div class="panel narrow">
+    <fieldset>
+      <legend>What to practise</legend>
+      <div class="seg">
+        <input class="vh" type="radio" name="op" id="op-mul" value="mul"><label for="op-mul">Multiply ×</label>
+        <input class="vh" type="radio" name="op" id="op-div" value="div"><label for="op-div">Divide ÷</label>
+        <input class="vh" type="radio" name="op" id="op-mix" value="mix"><label for="op-mix">Mixed</label>
+      </div>
+    </fieldset>
+    <fieldset>
+      <legend>Numbers</legend>
+      <div class="seg">
+        <input class="vh" type="radio" name="range" id="range-all" value="all"><label for="range-all">All numbers 1–10</label>
+        <input class="vh" type="radio" name="range" id="range-ex" value="ex"><label for="range-ex">Skip ×1 and ×10</label>
+      </div>
+    </fieldset>
+    <fieldset>
+      <legend>Questions per player</legend>
+      <div class="seg">
+        <input class="vh" type="radio" name="count" id="cnt-10" value="10"><label for="cnt-10">10</label>
+        <input class="vh" type="radio" name="count" id="cnt-20" value="20"><label for="cnt-20">20</label>
+        <input class="vh" type="radio" name="count" id="cnt-all" value="all"><label for="cnt-all" id="cnt-all-lbl">All (50)</label>
+      </div>
+    </fieldset>
+    <div class="toggles">
+      <label class="switch"><input class="vh" type="checkbox" id="opt-timer"><span class="sw"></span>30-second timer</label>
+      <label class="switch"><input class="vh" type="checkbox" id="opt-sound"><span class="sw"></span>Sounds</label>
+    </div>
+    <button class="btn big" id="btn-start">Start Game</button>
+  </div>
+  <nav class="links">
+    <button class="link" id="link-daily">Today's battles</button>
+    <button class="link" id="link-high">Highscores</button>
+  </nav>
+</section>
+
+<!-- NAMES -->
+<section class="screen" id="s-name1" hidden>
+  <form class="panel narrow name-form" id="f-name1" autocomplete="off">
+    <label for="in-name1"><span class="tag-p" style="background:var(--p1)"></span>Player 1, enter your name</label>
+    <input id="in-name1" maxlength="14" placeholder="Player 1">
+    <div class="btn-row"><button type="button" class="btn ghost" id="back1">Back</button><button class="btn">Done</button></div>
+  </form>
+</section>
+<section class="screen" id="s-name2" hidden>
+  <form class="panel narrow name-form" id="f-name2" autocomplete="off">
+    <label for="in-name2"><span class="tag-p" style="background:var(--p2)"></span>Player 2, enter your name</label>
+    <input id="in-name2" maxlength="14" placeholder="Player 2">
+    <div class="btn-row"><button type="button" class="btn ghost" id="back2">Back</button><button class="btn">Done</button></div>
+  </form>
+</section>
+
+<!-- GAME -->
+<section class="screen game" id="s-game" hidden>
+  <div class="g-top">
+    <div class="timer" id="g-timer">Time left <b id="g-time">30</b></div>
+    <div class="turn"><span id="g-turn">Turn 1/10</span><strong id="g-player">Player 1</strong></div>
+    <button class="quit" id="btn-quit" aria-label="Hold to quit the game"><span class="quit-fill"></span><span class="quit-label" id="quit-label">Hold to quit</span></button>
+  </div>
+  <div class="g-next" id="g-next" hidden><button class="btn next" id="btn-next">Next Player Turn →</button></div>
+  <div class="g-board">
+    <div class="side" id="side-0"><div class="side-score" id="sc-0">0 of 0</div><div class="meter"><div class="fill" id="fill-0"></div></div><div class="side-name" id="nm-0"></div></div>
+    <div class="center">
+      <div class="card q" id="g-q">2 × 8</div>
+      <div class="card a" id="g-a"><span class="ph">?</span></div>
+      <div class="g-note" id="g-note"></div>
+    </div>
+    <div class="side" id="side-1"><div class="side-score" id="sc-1">0 of 0</div><div class="meter"><div class="fill" id="fill-1"></div></div><div class="side-name" id="nm-1"></div></div>
+  </div>
+  <div class="pad" id="g-pad">
+    <button class="key" data-k="1">1</button><button class="key" data-k="2">2</button><button class="key" data-k="3">3</button>
+    <button class="key" data-k="4">4</button><button class="key" data-k="5">5</button><button class="key" data-k="6">6</button>
+    <button class="key" data-k="7">7</button><button class="key" data-k="8">8</button><button class="key" data-k="9">9</button>
+    <button class="key back" data-k="back" aria-label="Delete">⌫</button><button class="key" data-k="0">0</button><button class="key done" id="btn-done">Done</button>
+  </div>
+</section>
+
+<!-- RESULT -->
+<section class="screen" id="s-result" hidden>
+  <div class="panel narrow">
+    <div class="result-head"><h2 class="result-title" id="r-title">Player 1 Wins!</h2><div class="tag" id="r-tag"></div></div>
+    <ul class="rows big-scores" id="r-scores"></ul>
+    <div class="section-label">Let's practise these</div>
+    <div class="mistakes" id="r-mist"></div>
+    <div class="btn-row"><button class="btn" id="r-done">Done</button></div>
+  </div>
+</section>
+
+<!-- DAILY -->
+<section class="screen" id="s-daily" hidden>
+  <div class="panel narrow">
+    <h2 class="list-title">Daily Battle</h2>
+    <ul class="rows" id="d-list"></ul>
+    <div class="btn-row"><button class="btn" id="d-done">Done</button></div>
+  </div>
+</section>
+
+<!-- HIGHSCORES -->
+<section class="screen" id="s-high" hidden>
+  <div class="panel narrow">
+    <h2 class="list-title">Highscores</h2>
+    <ul class="rows" id="h-list"></ul>
+    <div class="btn-row"><button class="btn" id="h-done">Done</button></div>
+  </div>
+</section>
+
+<!-- QUIT DIALOG -->
+<div class="modal" id="m-quit" hidden>
+  <div class="panel dialog" role="dialog" aria-modal="true" aria-labelledby="m-title">
+    <h3 id="m-title">Stop the game?</h3>
+    <p>This game will not be saved.</p>
+    <div class="btn-row">
+      <button class="btn quiet" id="m-quit-yes">Stop game</button>
+      <button class="btn" id="m-quit-no">Keep playing</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+const $ = s => document.querySelector(s);
+const store = {
+  get(k, d){ try{ const v = localStorage.getItem('ttd.'+k); return v ? JSON.parse(v) : d; }catch(e){ return d; } },
+  set(k, v){ try{ localStorage.setItem('ttd.'+k, JSON.stringify(v)); }catch(e){} }
+};
+function el(tag, cls, text){ const e = document.createElement(tag); if(cls) e.className = cls; if(text != null) e.textContent = text; return e; }
+
+/* ---------- settings ---------- */
+const S = Object.assign({op:'mul', range:'all', count:'20', timer:true, sound:true}, store.get('settings', {}));
+const nums = () => S.range === 'all' ? [1,2,3,4,5,6,7,8,9,10] : [2,3,4,5,6,7,8,9];
+const maxPer = () => Math.floor(nums().length ** 2 / 2);
+function syncSettingsUI(){
+  for (const name of ['op','range','count']) {
+    const r = document.querySelector(`input[name="${name}"][value="${S[name]}"]`); if (r) r.checked = true;
+  }
+  $('#opt-timer').checked = S.timer; $('#opt-sound').checked = S.sound;
+  $('#cnt-all-lbl').textContent = `All (${maxPer()})`;
+}
+document.querySelectorAll('.seg input').forEach(r => r.addEventListener('change', () => {
+  S[r.name] = r.value; store.set('settings', S); syncSettingsUI();
+}));
+$('#opt-timer').addEventListener('change', e => { S.timer = e.target.checked; store.set('settings', S); });
+$('#opt-sound').addEventListener('change', e => { S.sound = e.target.checked; store.set('settings', S); });
+syncSettingsUI();
+
+/* ---------- navigation ---------- */
+let current = 's-start';
+function show(id){
+  current = id;
+  document.querySelectorAll('.screen').forEach(s => s.hidden = s.id !== id);
+  window.scrollTo(0, 0);
+}
+
+/* ---------- sound ---------- */
+let ac = null;
+function tone(freqs, {dur=0.14, gap=0.1, type='sine', vol=0.16} = {}){
+  if (!S.sound) return;
+  try {
+    ac = ac || new (window.AudioContext || window.webkitAudioContext)();
+    if (ac.state === 'suspended') ac.resume();
+    freqs.forEach((f, i) => {
+      const o = ac.createOscillator(), g = ac.createGain(), t = ac.currentTime + i * gap;
+      o.type = type; o.frequency.value = f;
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(vol, t + 0.015);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.connect(g).connect(ac.destination); o.start(t); o.stop(t + dur + 0.03);
+    });
+  } catch(e) {}
+}
+const sfx = {
+  ok: () => tone([660, 880], {dur:.16}),
+  bad: () => tone([220, 175], {dur:.22, type:'triangle', gap:.14}),
+  tick: () => tone([1000], {dur:.05, vol:.06, type:'square'}),
+  key: () => tone([520], {dur:.04, vol:.05}),
+  win: () => tone([523, 659, 784, 1047], {dur:.22, gap:.13}),
+  draw: () => tone([523, 659, 523], {dur:.2, gap:.15})
+};
+
+/* ---------- confetti ---------- */
+function confetti(){
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const c = $('#confetti'); c.hidden = false;
+  const ctx = c.getContext('2d'), dpr = window.devicePixelRatio || 1;
+  const W = c.width = innerWidth * dpr, H = c.height = innerHeight * dpr;
+  const colors = ['#2f6fe4','#e5822a','#1f9d58','#e0435a','#f2c230'];
+  const P = Array.from({length:150}, () => ({
+    x: W/2 + (Math.random()-.5) * W*.3, y: H*.35, vx: (Math.random()-.5) * 18*dpr, vy: (-Math.random()*16 - 4)*dpr,
+    s: (6 + Math.random()*6)*dpr, r: Math.random()*6, vr: (Math.random()-.5)*.3, c: colors[Math.random()*colors.length|0]
+  }));
+  const start = performance.now();
+  (function frame(now){
+    ctx.clearRect(0,0,W,H);
+    P.forEach(p => { p.vy += .45*dpr; p.vx *= .99; p.x += p.vx; p.y += p.vy; p.r += p.vr;
+      ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.r); ctx.fillStyle = p.c; ctx.fillRect(-p.s/2,-p.s/4,p.s,p.s/2); ctx.restore(); });
+    if (now - start < 3200) requestAnimationFrame(frame); else { ctx.clearRect(0,0,W,H); c.hidden = true; }
+  })(start);
+}
+
+/* ---------- names ---------- */
+const lastNames = store.get('names', ['', '']);
+$('#btn-start').addEventListener('click', () => { tone([]); show('s-name1'); const i = $('#in-name1'); i.value = lastNames[0] || ''; i.focus(); i.select(); });
+$('#f-name1').addEventListener('submit', e => { e.preventDefault(); show('s-name2'); const i = $('#in-name2'); i.value = lastNames[1] || ''; i.focus(); i.select(); });
+$('#f-name2').addEventListener('submit', e => { e.preventDefault(); startGame(); });
+$('#back1').addEventListener('click', () => show('s-start'));
+$('#back2').addEventListener('click', () => { show('s-name1'); $('#in-name1').focus(); });
+
+/* ---------- game ---------- */
+let G = null;
+const opSym = op => op === 'mul' ? '×' : op === 'div' ? '÷' : '× ÷';
+function shuffle(a){ for (let i = a.length-1; i > 0; i--){ const j = Math.random()*(i+1)|0; [a[i],a[j]] = [a[j],a[i]]; } return a; }
+function makeQ(a, b){
+  const op = S.op === 'mix' ? (Math.random() < .5 ? 'mul' : 'div') : S.op;
+  return op === 'mul'
+    ? {text:`${a} × ${b}`, full:`${a} × ${b} = ${a*b}`, ans:a*b}
+    : {text:`${a*b} ÷ ${a}`, full:`${a*b} ÷ ${a} = ${b}`, ans:b};
+}
+function startGame(){
+  const n1 = $('#in-name1').value.trim() || 'Player 1';
+  let n2 = $('#in-name2').value.trim() || 'Player 2';
+  if (n2.toLowerCase() === n1.toLowerCase()) n2 += ' 2';
+  store.set('names', [lastNames[0] = $('#in-name1').value.trim(), lastNames[1] = $('#in-name2').value.trim()]);
+  const ns = nums(), pool = [];
+  for (const a of ns) for (const b of ns) pool.push([a, b]);   // every ordered pair once: 2×7 and 7×2 are different questions
+  shuffle(pool);
+  const N = S.count === 'all' ? maxPer() : Math.min(+S.count, maxPer());
+  G = {
+    players: [n1, n2].map(name => ({name, correct:0, answered:0, mistakes:[]})),
+    qs: pool.slice(0, N*2).map(([a,b]) => makeQ(a, b)),
+    N, i:0, input:'', phase:'ask', saved:false,
+    cfg: {op:S.op, range:S.range, timer:S.timer}
+  };
+  $('#nm-0').textContent = n1; $('#nm-1').textContent = n2;
+  show('s-game'); ask();
+}
+function renderMeters(){
+  G.players.forEach((p, k) => {
+    $('#fill-'+k).style.height = (p.correct / G.N * 100) + '%';
+    $('#sc-'+k).textContent = `${p.correct} of ${p.answered}`;
+  });
+}
+function renderAnswer(){
+  const a = $('#g-a');
+  a.textContent = '';
+  if (G.input === '') a.append(el('span', 'ph', '?')); else a.textContent = G.input;
+}
+function ask(){
+  G.phase = 'ask'; G.input = '';
+  const p = G.i % 2, q = G.qs[G.i];
+  $('#s-game').dataset.p = p;
+  $('#g-turn').textContent = `Turn ${Math.floor(G.i/2) + 1}/${G.N}`;
+  $('#g-player').textContent = G.players[p].name;
+  const qc = $('#g-q'); qc.className = 'card q'; qc.textContent = q.text;
+  $('#g-a').className = 'card a'; renderAnswer();
+  const note = $('#g-note'); note.className = 'g-note'; note.textContent = '';
+  [0,1].forEach(k => { const s = $('#side-'+k); s.classList.toggle('active', k === p); s.classList.remove('ok','bad'); });
+  renderMeters();
+  $('#g-pad').hidden = false; $('#g-next').hidden = true;
+  startTimer(30000);
+}
+function press(k){
+  if (!G || G.phase !== 'ask') return;
+  if (k === 'back') G.input = G.input.slice(0, -1);
+  else if (G.input.length < 3) G.input = (G.input === '0' ? '' : G.input) + k;
+  sfx.key(); renderAnswer();
+}
+const praise = ['Correct!', 'Great job!', 'Super!', 'Well done!', 'Brilliant!'];
+function submit(timeout){
+  if (!G || G.phase !== 'ask') return;
+  if (!timeout && G.input === '') { const a = $('#g-a'); a.classList.remove('shake'); void a.offsetWidth; a.classList.add('shake'); return; }
+  stopTimer(); G.phase = 'reveal';
+  const p = G.i % 2, q = G.qs[G.i], pl = G.players[p];
+  const val = timeout ? null : parseInt(G.input, 10);
+  const ok = val === q.ans;
+  pl.answered++;
+  if (ok) pl.correct++; else pl.mistakes.push({q: q.full, given: val});
+  const cls = ok ? 'ok' : 'bad';
+  const qc = $('#g-q'); qc.textContent = q.full; qc.className = 'card q ' + cls;
+  const a = $('#g-a'); a.className = 'card a ' + cls + (timeout ? ' small-txt' : '');
+  a.textContent = timeout ? "Time's up!" : String(val);
+  const note = $('#g-note'); note.className = 'g-note ' + cls;
+  note.textContent = ok ? praise[Math.random()*praise.length|0] : timeout ? `The answer is ${q.ans}` : `Not quite. The answer is ${q.ans}`;
+  $('#side-'+p).classList.add(cls);
+  renderMeters();
+  ok ? sfx.ok() : sfx.bad();
+  const last = G.i === G.qs.length - 1;
+  $('#btn-next').textContent = last ? 'See Results →' : 'Next Player Turn →';
+  $('#g-pad').hidden = true; $('#g-next').hidden = false;
+  $('#btn-next').focus({preventScroll:true});
+}
+function next(){
+  if (!G || G.phase !== 'reveal') return;
+  if (G.i === G.qs.length - 1) return results();
+  G.i++; ask();
+}
+$('#g-pad').addEventListener('click', e => { const b = e.target.closest('.key'); if (!b) return; if (b.id === 'btn-done') submit(false); else press(b.dataset.k); });
+$('#btn-next').addEventListener('click', next);
+
+/* ---------- timer ---------- */
+let tEnd = 0, tLeft = 0, tInt = null, lastSec = null;
+function startTimer(ms){
+  stopTimer();
+  const box = $('#g-timer');
+  if (!G.cfg.timer) { box.hidden = true; return; }
+  box.hidden = false; tEnd = performance.now() + ms; lastSec = null;
+  tInt = setInterval(tick, 100); tick();
+}
+function tick(){
+  const left = Math.max(0, tEnd - performance.now()), s = Math.ceil(left / 1000);
+  $('#g-time').textContent = s;
+  $('#g-timer').classList.toggle('low', s <= 10);
+  if (s !== lastSec && s <= 5 && s > 0) sfx.tick();
+  lastSec = s;
+  if (left <= 0) submit(true);
+}
+function stopTimer(){ clearInterval(tInt); tInt = null; }
+function pauseTimer(){ if (tInt) { tLeft = tEnd - performance.now(); stopTimer(); } else tLeft = 0; }
+function resumeTimer(){ if (G && G.phase === 'ask' && G.cfg.timer && tLeft > 0) startTimer(tLeft); }
+
+/* ---------- quit: hold 1.5 s, then confirm ---------- */
+const qb = $('#btn-quit'); let holdT = null, holdStartAt = 0;
+function holdStart(){ if (holdT) return; holdStartAt = performance.now(); qb.classList.add('holding'); $('#quit-label').textContent = 'Keep holding…';
+  holdT = setTimeout(() => { holdT = null; qb.classList.remove('holding'); $('#quit-label').textContent = 'Hold to quit'; openQuit(); }, 1500); }
+function holdEnd(){ if (!holdT) return; clearTimeout(holdT); holdT = null; qb.classList.remove('holding');
+  $('#quit-label').textContent = 'Hold longer to quit'; setTimeout(() => { if (!holdT) $('#quit-label').textContent = 'Hold to quit'; }, 1400); }
+qb.addEventListener('pointerdown', e => { e.preventDefault(); holdStart(); });
+['pointerup','pointerleave','pointercancel'].forEach(t => qb.addEventListener(t, holdEnd));
+qb.addEventListener('contextmenu', e => e.preventDefault());
+qb.addEventListener('keydown', e => { if ((e.key === ' ' || e.key === 'Enter') && !e.repeat) { e.preventDefault(); e.stopPropagation(); holdStart(); } });
+qb.addEventListener('keyup', e => { if (e.key === ' ' || e.key === 'Enter') { e.stopPropagation(); holdEnd(); } });
+function openQuit(){ pauseTimer(); $('#m-quit').hidden = false; $('#m-quit-no').focus(); }
+$('#m-quit-no').addEventListener('click', () => { $('#m-quit').hidden = true; resumeTimer(); });
+$('#m-quit-yes').addEventListener('click', () => { $('#m-quit').hidden = true; stopTimer(); G = null; show('s-start'); });
+
+/* ---------- keyboard ---------- */
+document.addEventListener('keydown', e => {
+  if (current !== 's-game' || !$('#m-quit').hidden || e.target === qb) return;
+  if (/^[0-9]$/.test(e.key)) { press(e.key); e.preventDefault(); }
+  else if (e.key === 'Backspace') { press('back'); e.preventDefault(); }
+  else if (e.key === 'Enter') { e.preventDefault(); if (G && G.phase === 'ask') submit(false); else next(); }
+});
+
+/* ---------- results & records ---------- */
+const today = () => { const d = new Date(); return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`; };
+const tagOf = r => `${opSym(r.op)} · ${r.range === 'all' ? '1–10' : '2–9'} · ${r.timer ? 'Timer' : 'No timer'}`;
+function scoreRow(name, score, N, tag){
+  const li = el('li', 'row');
+  const who = tag ? el('div', 'row-wrap') : el('span', 'who', name);
+  if (tag) { who.append(el('span', 'who', name), el('span', 'tag', tag)); }
+  const val = el('span', 'val', String(score)); val.append(' ', el('small', null, `(of ${N})`));
+  li.append(who, el('span', 'dots'), val);
+  return li;
+}
+function results(){
+  stopTimer();
+  const [a, b] = G.players;
+  if (!G.saved) {
+    G.saved = true;
+    const battles = store.get('battles', []);
+    battles.push({t:Date.now(), day:today(), names:[a.name, b.name], scores:[a.correct, b.correct], N:G.N, ...G.cfg});
+    store.set('battles', battles.slice(-500));
+  }
+  const title = $('#r-title');
+  if (a.correct === b.correct) { title.textContent = 'Draw!'; title.className = 'result-title draw'; sfx.draw(); }
+  else { const w = a.correct > b.correct ? a : b; title.textContent = `${w.name} Wins!`; title.className = 'result-title win'; sfx.win(); confetti(); }
+  $('#r-tag').textContent = `${G.N} questions each · ` + tagOf(G.cfg);
+  const sc = $('#r-scores'); sc.textContent = '';
+  G.players.forEach(p => sc.append(scoreRow(p.name, p.correct, G.N)));
+  const m = $('#r-mist'); m.textContent = '';
+  G.players.forEach(p => {
+    const box = el('div'); box.append(el('h4', null, p.name));
+    if (!p.mistakes.length) box.append(el('div', 'perfect', 'No mistakes. Perfect!'));
+    else { const ul = el('ul'); p.mistakes.forEach(x => { const li = el('li'); li.append(el('b', null, x.q), el('span', null, x.given === null ? 'time ran out' : `you said ${x.given}`)); ul.append(li); }); box.append(ul); }
+    m.append(box);
+  });
+  show('s-result');
+}
+let flowFromGame = false;
+function showDaily(fromGame){
+  flowFromGame = fromGame;
+  const list = $('#d-list'); list.textContent = '';
+  const items = store.get('battles', []).filter(r => r.day === today()).reverse();
+  if (!items.length) list.append(el('li', 'empty', 'No battles yet today. Start a game!'));
+  items.forEach(r => {
+    const [s0, s1] = r.scores;
+    const label = s0 === s1 ? `Draw: ${r.names[0]} & ${r.names[1]}` : `${s0 > s1 ? r.names[0] : r.names[1]} wins`;
+    const li = el('li', 'row'), wrap = el('div', 'row-wrap');
+    wrap.append(el('span', 'who', label), el('span', 'tag', `${r.N} each · ` + tagOf(r)));
+    li.append(wrap, el('span', 'dots'), el('span', 'val', `${Math.max(s0,s1)} vs ${Math.min(s0,s1)}`));
+    list.append(li);
+  });
+  show('s-daily');
+}
+function showHigh(){
+  const list = $('#h-list'); list.textContent = '';
+  const all = [];
+  store.get('battles', []).forEach(r => r.names.forEach((n, k) => all.push({name:n, score:r.scores[k], N:r.N, t:r.t, r})));
+  all.sort((x, y) => (y.score / y.N) - (x.score / x.N) || y.score - x.score || x.t - y.t);
+  if (!all.length) list.append(el('li', 'empty', 'No scores yet. Play a game to get on the board!'));
+  all.slice(0, 10).forEach(e => list.append(scoreRow(e.name, e.score, e.N, tagOf(e.r))));
+  show('s-high');
+}
+$('#r-done').addEventListener('click', () => { G = null; showDaily(true); });
+$('#d-done').addEventListener('click', () => flowFromGame ? showHigh() : show('s-start'));
+$('#h-done').addEventListener('click', () => show('s-start'));
+$('#link-daily').addEventListener('click', () => showDaily(false));
+$('#link-high').addEventListener('click', showHigh);
+})();
+</script>
+
+</html>
