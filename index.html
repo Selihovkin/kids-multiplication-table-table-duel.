@@ -4,6 +4,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Times Table Duel</title>
 <meta name="claude:viewport-fit-sides" content="cover">
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#f4f7fb">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@500;700;800&display=swap">
@@ -19,8 +22,9 @@
 }
 *{box-sizing:border-box}
 [hidden]{display:none!important}
-html{background:var(--paper)}
+html{background:var(--paper);height:100%}
 body{
+  margin:0;
   background-color:var(--paper);
   background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
   background-size:24px 24px;
@@ -29,26 +33,38 @@ body{
   min-height:100%;
 }
 button{font:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+button:disabled{cursor:not-allowed}
 button:focus-visible,input:focus-visible{outline:3px solid var(--p1);outline-offset:3px}
 h1,h2,h3,h4{font-family:var(--f-display);margin:0;line-height:1.1;text-wrap:balance}
 
 .screen{max-width:760px;margin:0 auto;padding-block:24px 40px;display:flex;flex-direction:column;gap:20px}
 .panel{background:var(--card);border:2px solid var(--ink);border-radius:16px;box-shadow:4px 4px 0 var(--ink);padding:20px;display:flex;flex-direction:column;gap:20px}
-.narrow{max-width:480px;width:100%;margin:0 auto}
+.narrow{max-width:520px;width:100%;margin:0 auto}
 
 /* Start */
-.brand{text-align:center;padding-top:8px}
-.brand h1{font-size:clamp(40px,10vw,64px);font-weight:800;letter-spacing:-.5px}
+.brand{display:flex;flex-direction:column;align-items:center;text-align:center;gap:4px;padding-top:4px}
+.logo{width:88px;height:88px;border-radius:22px;box-shadow:3px 3px 0 var(--ink);border:2px solid var(--ink);background:var(--card)}
+.brand h1{font-size:clamp(38px,9vw,60px);font-weight:800;letter-spacing:-.5px}
 .brand h1 em{font-style:normal;color:var(--p2)}
 .brand h1 .x{color:var(--p1)}
-.brand p{margin:6px 0 0;color:var(--muted);font-weight:700}
+.brand p{margin:0;color:var(--muted);font-weight:700}
 fieldset{border:0;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;min-width:0}
-legend{font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);padding:0;margin-bottom:8px}
+legend{font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);padding:0;margin-bottom:8px;width:100%}
+.legend-row{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.mini{background:none;border:0;padding:0 2px;font-size:13px;font-weight:800;color:var(--p1);text-decoration:underline;text-underline-offset:3px;text-transform:none;letter-spacing:0}
 .seg{display:flex;flex-wrap:wrap;gap:8px}
 .vh{position:absolute;opacity:0;width:1px;height:1px;pointer-events:none}
 .seg label{border:2px solid var(--line);border-radius:999px;padding:8px 16px;font-weight:800;background:var(--card);user-select:none;cursor:pointer}
 .seg input:checked+label{background:var(--ink);border-color:var(--ink);color:var(--card)}
 .seg input:focus-visible+label{outline:3px solid var(--p1);outline-offset:2px}
+.seg input:disabled+label{opacity:.35;cursor:not-allowed;text-decoration:line-through}
+.nums{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.nums label{border:2px solid var(--line);border-radius:12px;padding:6px 0;text-align:center;font-family:var(--f-display);font-size:24px;font-weight:700;background:var(--card);user-select:none;cursor:pointer;font-variant-numeric:tabular-nums}
+.nums input:checked+label{background:var(--p1);border-color:var(--p1);color:var(--card);box-shadow:0 3px 0 var(--ink)}
+.nums input:focus-visible+label{outline:3px solid var(--ink);outline-offset:2px}
+.nums input:disabled+label{opacity:.3;cursor:not-allowed;text-decoration:line-through;box-shadow:none;background:var(--card);color:var(--muted);border-color:var(--line)}
+.hint{font-size:14px;font-weight:700;color:var(--muted)}
+.hint.warn{color:var(--bad)}
 .toggles{display:flex;flex-wrap:wrap;gap:12px 28px}
 .switch{display:flex;align-items:center;gap:10px;font-weight:800;cursor:pointer;user-select:none}
 .switch .sw{width:48px;height:28px;border-radius:999px;background:var(--line);position:relative;transition:background .2s;flex:none}
@@ -61,6 +77,7 @@ legend{font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.0
 
 .btn{font-family:var(--f-display);font-size:22px;font-weight:700;background:var(--ink);color:var(--card);border:0;border-radius:12px;padding:10px 26px;box-shadow:0 4px 0 var(--ink-deep);transition:transform .08s}
 .btn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--ink-deep)}
+.btn:disabled{opacity:.4;transform:none;box-shadow:0 4px 0 var(--ink-deep)}
 .btn.big{width:100%;font-size:26px;padding:12px}
 .btn.ghost{background:var(--card);color:var(--ink);border:2px solid var(--ink);box-shadow:0 4px 0 var(--ink)}
 .btn-row{display:flex;justify-content:center;gap:12px;flex-wrap:wrap}
@@ -87,12 +104,13 @@ legend{font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.0
 .quit.holding .quit-fill{width:100%;transition:width 1.5s linear}
 .quit.holding{border-color:var(--bad);color:var(--bad)}
 .quit-label{position:relative}
-.g-next{display:flex;justify-content:center;min-height:0}
+.g-next{display:flex;justify-content:center}
 .btn.next{font-size:24px;padding:12px 30px;background:var(--pc);box-shadow:0 4px 0 var(--ink-deep);animation:pop .25s ease-out}
 @keyframes pop{from{transform:scale(.85);opacity:0}}
 .g-board{display:grid;grid-template-columns:64px minmax(0,1fr) 64px;gap:14px;align-items:stretch}
 .side{--sc:var(--p1);display:flex;flex-direction:column;align-items:center;gap:6px;opacity:.5;transition:opacity .2s}
 #side-1{--sc:var(--p2)}
+.solo #side-1{visibility:hidden}
 .side.active{opacity:1}
 .side-score{font-size:13px;font-weight:800;font-variant-numeric:tabular-nums;white-space:nowrap}
 .meter{flex:1;width:38px;min-height:190px;border:2px solid var(--ink);border-radius:12px;background:var(--card);position:relative;overflow:hidden}
@@ -121,20 +139,22 @@ legend{font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.0
 .key.back{color:var(--muted)}
 
 /* Results & lists */
-.result-title{font-size:clamp(40px,9vw,60px);font-weight:800;text-align:center}
+.result-title{font-size:clamp(38px,9vw,58px);font-weight:800;text-align:center;overflow-wrap:anywhere}
 .result-title.win{color:var(--ok)}
 .result-title.draw{color:var(--p1)}
 .list-title{font-size:36px;font-weight:800}
-.tag{font-size:13px;font-weight:800;color:var(--muted);letter-spacing:.04em;text-transform:uppercase}
+.tag{font-size:13px;font-weight:800;color:var(--muted);letter-spacing:.04em;text-transform:uppercase;text-align:center}
 .result-head{display:flex;flex-direction:column;align-items:center;gap:6px}
+.best{font-weight:800;text-align:center;color:var(--muted)}
+.best.new{color:var(--ok);font-family:var(--f-display);font-size:24px}
 .rows{display:flex;flex-direction:column;gap:12px;margin:0;padding:0;list-style:none}
 .row{display:flex;align-items:baseline;gap:8px;font-weight:800;font-size:18px}
 .row .who{overflow-wrap:anywhere}
 .row .dots{flex:1;border-bottom:2px dotted var(--line);transform:translateY(-5px);min-width:20px}
 .row .val{font-variant-numeric:tabular-nums;white-space:nowrap}
 .row .val small{color:var(--muted);font-weight:700}
-.row-wrap{display:flex;flex-direction:column;gap:2px}
-.row-wrap .tag{font-size:11px}
+.row-wrap{display:flex;flex-direction:column;gap:2px;min-width:0}
+.row-wrap .tag{font-size:11px;text-align:left}
 .big-scores .row{font-family:var(--f-display);font-size:26px}
 .empty{color:var(--muted);font-weight:700;text-align:center;padding:12px 0}
 .mistakes{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}
@@ -162,6 +182,7 @@ legend{font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.0
   .timer b{font-size:30px}
   .turn strong{font-size:22px}
   .key{font-size:26px}
+  .nums label{font-size:22px}
 }
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -171,10 +192,18 @@ legend{font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.0
 <!-- START -->
 <section class="screen" id="s-start">
   <header class="brand">
+    <img class="logo" id="logo" alt="" width="88" height="88">
     <h1>Times Table <span class="x">×</span> <em>Duel</em></h1>
-    <p>Two players, one screen. Who knows the table better?</p>
+    <p>Play alone or against a friend. How well do you know your tables?</p>
   </header>
   <div class="panel narrow">
+    <fieldset>
+      <legend>Players</legend>
+      <div class="seg">
+        <input class="vh" type="radio" name="mode" id="mode-solo" value="solo"><label for="mode-solo">1 player</label>
+        <input class="vh" type="radio" name="mode" id="mode-duel" value="duel"><label for="mode-duel">2 players</label>
+      </div>
+    </fieldset>
     <fieldset>
       <legend>What to practise</legend>
       <div class="seg">
@@ -184,14 +213,13 @@ legend{font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.0
       </div>
     </fieldset>
     <fieldset>
-      <legend>Numbers</legend>
-      <div class="seg">
-        <input class="vh" type="radio" name="range" id="range-all" value="all"><label for="range-all">All numbers 1–10</label>
-        <input class="vh" type="radio" name="range" id="range-ex" value="ex"><label for="range-ex">Skip ×1 and ×10</label>
-      </div>
+      <legend><span class="legend-row"><span>Tables to practise</span><span><button type="button" class="mini" id="t-all">All</button> · <button type="button" class="mini" id="t-none">Clear</button></span></span></legend>
+      <div class="nums" id="t-nums"></div>
+      <div class="hint" id="t-hint"></div>
+      <label class="switch"><input class="vh" type="checkbox" id="opt-skip"><span class="sw"></span>Skip ×1 and ×10</label>
     </fieldset>
     <fieldset>
-      <legend>Questions per player</legend>
+      <legend id="cnt-legend">Questions per player</legend>
       <div class="seg">
         <input class="vh" type="radio" name="count" id="cnt-10" value="10"><label for="cnt-10">10</label>
         <input class="vh" type="radio" name="count" id="cnt-20" value="20"><label for="cnt-20">20</label>
@@ -205,7 +233,7 @@ legend{font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.0
     <button class="btn big" id="btn-start">Start Game</button>
   </div>
   <nav class="links">
-    <button class="link" id="link-daily">Today's battles</button>
+    <button class="link" id="link-daily">Today's games</button>
     <button class="link" id="link-high">Highscores</button>
   </nav>
 </section>
@@ -213,7 +241,7 @@ legend{font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.0
 <!-- NAMES -->
 <section class="screen" id="s-name1" hidden>
   <form class="panel narrow name-form" id="f-name1" autocomplete="off">
-    <label for="in-name1"><span class="tag-p" style="background:var(--p1)"></span>Player 1, enter your name</label>
+    <label for="in-name1"><span class="tag-p" style="background:var(--p1)"></span><span id="name1-label">Player 1, enter your name</span></label>
     <input id="in-name1" maxlength="14" placeholder="Player 1">
     <div class="btn-row"><button type="button" class="btn ghost" id="back1">Back</button><button class="btn">Done</button></div>
   </form>
@@ -234,7 +262,7 @@ legend{font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.0
     <button class="quit" id="btn-quit" aria-label="Hold to quit the game"><span class="quit-fill"></span><span class="quit-label" id="quit-label">Hold to quit</span></button>
   </div>
   <div class="g-next" id="g-next" hidden><button class="btn next" id="btn-next">Next Player Turn →</button></div>
-  <div class="g-board">
+  <div class="g-board" id="g-board">
     <div class="side" id="side-0"><div class="side-score" id="sc-0">0 of 0</div><div class="meter"><div class="fill" id="fill-0"></div></div><div class="side-name" id="nm-0"></div></div>
     <div class="center">
       <div class="card q" id="g-q">2 × 8</div>
@@ -256,6 +284,7 @@ legend{font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.0
   <div class="panel narrow">
     <div class="result-head"><h2 class="result-title" id="r-title">Player 1 Wins!</h2><div class="tag" id="r-tag"></div></div>
     <ul class="rows big-scores" id="r-scores"></ul>
+    <div class="best" id="r-best" hidden></div>
     <div class="section-label">Let's practise these</div>
     <div class="mistakes" id="r-mist"></div>
     <div class="btn-row"><button class="btn" id="r-done">Done</button></div>
@@ -301,22 +330,83 @@ const store = {
 };
 function el(tag, cls, text){ const e = document.createElement(tag); if(cls) e.className = cls; if(text != null) e.textContent = text; return e; }
 
+/* logo reuses the home-screen icon */
+try { $('#logo').src = document.querySelector('link[rel="apple-touch-icon"]').href; } catch(e) {}
+
 /* ---------- settings ---------- */
-const S = Object.assign({op:'mul', range:'all', count:'20', timer:true, sound:true}, store.get('settings', {}));
-const nums = () => S.range === 'all' ? [1,2,3,4,5,6,7,8,9,10] : [2,3,4,5,6,7,8,9];
-const maxPer = () => Math.floor(nums().length ** 2 / 2);
+const ALL = [1,2,3,4,5,6,7,8,9,10];
+const saved = store.get('settings', {});
+const S = Object.assign({mode:'duel', op:'mul', tables:ALL.slice(), skip:false, count:'20', timer:true, sound:true}, saved);
+if (saved.range === 'ex' && saved.skip === undefined) S.skip = true;   // settings from the first version
+delete S.range;
+if (!Array.isArray(S.tables)) S.tables = ALL.slice();
+const save = () => store.set('settings', S);
+
+const factors = skip => skip ? [2,3,4,5,6,7,8,9] : ALL;
+const effTables = () => S.tables.filter(n => factors(S.skip).includes(n)).sort((a,b) => a-b);
+
+/* Builds the question list for a set of tables. Every ordered pair a×b where a or b is a chosen table.
+   Division uses the chosen table as the divisor; duplicates are dropped. */
+function buildPool(op, T, skip, randomOps){
+  const B = factors(skip), Ts = new Set(T), out = [], seen = new Set();
+  for (const a of B) for (const b of B) {
+    if (!Ts.has(a) && !Ts.has(b)) continue;
+    let o = op === 'mix' ? (randomOps ? (Math.random() < .5 ? 'mul' : 'div') : 'mul') : op;
+    if (o === 'div') {
+      const d = Ts.has(a) ? a : b, q = d === a ? b : a, key = `d${d}:${q}`;
+      if (seen.has(key)) { if (op === 'mix') o = 'mul'; else continue; }
+      else { seen.add(key); out.push({text:`${a*b} ÷ ${d}`, full:`${a*b} ÷ ${d} = ${q}`, ans:q}); continue; }
+    }
+    out.push({text:`${a} × ${b}`, full:`${a} × ${b} = ${a*b}`, ans:a*b});
+  }
+  return out;
+}
+function maxPer(){
+  const T = effTables(); if (!T.length) return 0;
+  const n = buildPool(S.op, T, S.skip, false).length;
+  return S.mode === 'solo' ? n : Math.floor(n / 2);
+}
+
+const numsBox = $('#t-nums');
+ALL.forEach(n => {
+  const i = el('input', 'vh'); i.type = 'checkbox'; i.id = 't-' + n; i.value = n;
+  const l = el('label', null, String(n)); l.htmlFor = i.id;
+  i.addEventListener('change', () => {
+    S.tables = i.checked ? [...new Set([...S.tables, n])] : S.tables.filter(x => x !== n);
+    save(); syncSettingsUI();
+  });
+  numsBox.append(i, l);
+});
+$('#t-all').addEventListener('click', () => { S.tables = ALL.slice(); save(); syncSettingsUI(); });
+$('#t-none').addEventListener('click', () => { S.tables = []; save(); syncSettingsUI(); });
+
 function syncSettingsUI(){
-  for (const name of ['op','range','count']) {
+  for (const name of ['mode','op']) {
     const r = document.querySelector(`input[name="${name}"][value="${S[name]}"]`); if (r) r.checked = true;
   }
-  $('#opt-timer').checked = S.timer; $('#opt-sound').checked = S.sound;
-  $('#cnt-all-lbl').textContent = `All (${maxPer()})`;
+  const B = factors(S.skip);
+  ALL.forEach(n => { const i = $('#t-'+n); i.disabled = !B.includes(n); i.checked = B.includes(n) && S.tables.includes(n); });
+  $('#opt-skip').checked = S.skip; $('#opt-timer').checked = S.timer; $('#opt-sound').checked = S.sound;
+
+  const T = effTables(), max = maxPer(), hint = $('#t-hint');
+  if (!T.length) { hint.textContent = 'Pick at least one number.'; hint.className = 'hint warn'; }
+  else if (T.length === B.length) { hint.textContent = S.skip ? 'All tables from 2 to 9.' : 'All tables from 1 to 10.'; hint.className = 'hint'; }
+  else { hint.textContent = (S.op === 'div' ? 'Dividing by ' : 'Times ') + T.join(', ') + '.'; hint.className = 'hint'; }
+
+  $('#cnt-legend').textContent = S.mode === 'solo' ? 'Questions' : 'Questions per player';
+  $('#cnt-all-lbl').textContent = `All (${max})`;
+  $('#cnt-10').disabled = max <= 10;
+  $('#cnt-20').disabled = max <= 20;
+  if ((S.count === '10' && max <= 10) || (S.count === '20' && max <= 20)) S.count = 'all';
+  const c = document.querySelector(`input[name="count"][value="${S.count}"]`); if (c) c.checked = true;
+  $('#btn-start').disabled = max < 1;
 }
 document.querySelectorAll('.seg input').forEach(r => r.addEventListener('change', () => {
-  S[r.name] = r.value; store.set('settings', S); syncSettingsUI();
+  S[r.name] = r.value; save(); syncSettingsUI();
 }));
-$('#opt-timer').addEventListener('change', e => { S.timer = e.target.checked; store.set('settings', S); });
-$('#opt-sound').addEventListener('change', e => { S.sound = e.target.checked; store.set('settings', S); });
+$('#opt-skip').addEventListener('change', e => { S.skip = e.target.checked; save(); syncSettingsUI(); });
+$('#opt-timer').addEventListener('change', e => { S.timer = e.target.checked; save(); });
+$('#opt-sound').addEventListener('change', e => { S.sound = e.target.checked; save(); });
 syncSettingsUI();
 
 /* ---------- navigation ---------- */
@@ -375,40 +465,46 @@ function confetti(){
 
 /* ---------- names ---------- */
 const lastNames = store.get('names', ['', '']);
-$('#btn-start').addEventListener('click', () => { tone([]); show('s-name1'); const i = $('#in-name1'); i.value = lastNames[0] || ''; i.focus(); i.select(); });
-$('#f-name1').addEventListener('submit', e => { e.preventDefault(); show('s-name2'); const i = $('#in-name2'); i.value = lastNames[1] || ''; i.focus(); i.select(); });
+$('#btn-start').addEventListener('click', () => {
+  tone([]);
+  $('#name1-label').textContent = S.mode === 'solo' ? 'Enter your name' : 'Player 1, enter your name';
+  show('s-name1'); const i = $('#in-name1'); i.value = lastNames[0] || ''; i.focus(); i.select();
+});
+$('#f-name1').addEventListener('submit', e => {
+  e.preventDefault();
+  if (S.mode === 'solo') return startGame();
+  show('s-name2'); const i = $('#in-name2'); i.value = lastNames[1] || ''; i.focus(); i.select();
+});
 $('#f-name2').addEventListener('submit', e => { e.preventDefault(); startGame(); });
 $('#back1').addEventListener('click', () => show('s-start'));
 $('#back2').addEventListener('click', () => { show('s-name1'); $('#in-name1').focus(); });
 
 /* ---------- game ---------- */
 let G = null;
-const opSym = op => op === 'mul' ? '×' : op === 'div' ? '÷' : '× ÷';
 function shuffle(a){ for (let i = a.length-1; i > 0; i--){ const j = Math.random()*(i+1)|0; [a[i],a[j]] = [a[j],a[i]]; } return a; }
-function makeQ(a, b){
-  const op = S.op === 'mix' ? (Math.random() < .5 ? 'mul' : 'div') : S.op;
-  return op === 'mul'
-    ? {text:`${a} × ${b}`, full:`${a} × ${b} = ${a*b}`, ans:a*b}
-    : {text:`${a*b} ÷ ${a}`, full:`${a*b} ÷ ${a} = ${b}`, ans:b};
-}
 function startGame(){
-  const n1 = $('#in-name1').value.trim() || 'Player 1';
+  const solo = S.mode === 'solo';
+  const n1 = $('#in-name1').value.trim() || (solo ? 'Player' : 'Player 1');
   let n2 = $('#in-name2').value.trim() || 'Player 2';
-  if (n2.toLowerCase() === n1.toLowerCase()) n2 += ' 2';
-  store.set('names', [lastNames[0] = $('#in-name1').value.trim(), lastNames[1] = $('#in-name2').value.trim()]);
-  const ns = nums(), pool = [];
-  for (const a of ns) for (const b of ns) pool.push([a, b]);   // every ordered pair once: 2×7 and 7×2 are different questions
-  shuffle(pool);
-  const N = S.count === 'all' ? maxPer() : Math.min(+S.count, maxPer());
+  if (!solo && n2.toLowerCase() === n1.toLowerCase()) n2 += ' 2';
+  lastNames[0] = $('#in-name1').value.trim();
+  if (!solo) lastNames[1] = $('#in-name2').value.trim();
+  store.set('names', lastNames);
+  const T = effTables(), max = maxPer();
+  const N = S.count === 'all' ? max : Math.min(+S.count, max);
+  const pool = shuffle(buildPool(S.op, T, S.skip, true));
   G = {
-    players: [n1, n2].map(name => ({name, correct:0, answered:0, mistakes:[]})),
-    qs: pool.slice(0, N*2).map(([a,b]) => makeQ(a, b)),
+    solo,
+    players: (solo ? [n1] : [n1, n2]).map(name => ({name, correct:0, answered:0, mistakes:[]})),
+    qs: pool.slice(0, solo ? N : N*2),
     N, i:0, input:'', phase:'ask', saved:false,
-    cfg: {op:S.op, range:S.range, timer:S.timer}
+    cfg: {mode:S.mode, op:S.op, tables:T, skip:S.skip, timer:S.timer}
   };
-  $('#nm-0').textContent = n1; $('#nm-1').textContent = n2;
+  $('#s-game').classList.toggle('solo', solo);
+  $('#nm-0').textContent = n1; $('#nm-1').textContent = solo ? '' : n2;
   show('s-game'); ask();
 }
+const who = () => G.solo ? 0 : G.i % 2;
 function renderMeters(){
   G.players.forEach((p, k) => {
     $('#fill-'+k).style.height = (p.correct / G.N * 100) + '%';
@@ -422,9 +518,9 @@ function renderAnswer(){
 }
 function ask(){
   G.phase = 'ask'; G.input = '';
-  const p = G.i % 2, q = G.qs[G.i];
+  const p = who(), q = G.qs[G.i];
   $('#s-game').dataset.p = p;
-  $('#g-turn').textContent = `Turn ${Math.floor(G.i/2) + 1}/${G.N}`;
+  $('#g-turn').textContent = G.solo ? `Question ${G.i + 1}/${G.N}` : `Turn ${Math.floor(G.i/2) + 1}/${G.N}`;
   $('#g-player').textContent = G.players[p].name;
   const qc = $('#g-q'); qc.className = 'card q'; qc.textContent = q.text;
   $('#g-a').className = 'card a'; renderAnswer();
@@ -445,7 +541,7 @@ function submit(timeout){
   if (!G || G.phase !== 'ask') return;
   if (!timeout && G.input === '') { const a = $('#g-a'); a.classList.remove('shake'); void a.offsetWidth; a.classList.add('shake'); return; }
   stopTimer(); G.phase = 'reveal';
-  const p = G.i % 2, q = G.qs[G.i], pl = G.players[p];
+  const p = who(), q = G.qs[G.i], pl = G.players[p];
   const val = timeout ? null : parseInt(G.input, 10);
   const ok = val === q.ans;
   pl.answered++;
@@ -460,7 +556,7 @@ function submit(timeout){
   renderMeters();
   ok ? sfx.ok() : sfx.bad();
   const last = G.i === G.qs.length - 1;
-  $('#btn-next').textContent = last ? 'See Results →' : 'Next Player Turn →';
+  $('#btn-next').textContent = last ? 'See Results →' : G.solo ? 'Next Question →' : 'Next Player Turn →';
   $('#g-pad').hidden = true; $('#g-next').hidden = false;
   $('#btn-next').focus({preventScroll:true});
 }
@@ -494,8 +590,8 @@ function pauseTimer(){ if (tInt) { tLeft = tEnd - performance.now(); stopTimer()
 function resumeTimer(){ if (G && G.phase === 'ask' && G.cfg.timer && tLeft > 0) startTimer(tLeft); }
 
 /* ---------- quit: hold 1.5 s, then confirm ---------- */
-const qb = $('#btn-quit'); let holdT = null, holdStartAt = 0;
-function holdStart(){ if (holdT) return; holdStartAt = performance.now(); qb.classList.add('holding'); $('#quit-label').textContent = 'Keep holding…';
+const qb = $('#btn-quit'); let holdT = null;
+function holdStart(){ if (holdT) return; qb.classList.add('holding'); $('#quit-label').textContent = 'Keep holding…';
   holdT = setTimeout(() => { holdT = null; qb.classList.remove('holding'); $('#quit-label').textContent = 'Hold to quit'; openQuit(); }, 1500); }
 function holdEnd(){ if (!holdT) return; clearTimeout(holdT); holdT = null; qb.classList.remove('holding');
   $('#quit-label').textContent = 'Hold longer to quit'; setTimeout(() => { if (!holdT) $('#quit-label').textContent = 'Hold to quit'; }, 1400); }
@@ -518,33 +614,59 @@ document.addEventListener('keydown', e => {
 
 /* ---------- results & records ---------- */
 const today = () => { const d = new Date(); return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`; };
-const tagOf = r => `${opSym(r.op)} · ${r.range === 'all' ? '1–10' : '2–9'} · ${r.timer ? 'Timer' : 'No timer'}`;
+function norm(r){   // records from the first version had no mode/tables
+  const skip = r.skip !== undefined ? r.skip : r.range === 'ex';
+  return {mode: r.mode || 'duel', op: r.op, skip, tables: r.tables || factors(skip), timer: r.timer};
+}
+function tagOf(raw){
+  const r = norm(raw), B = factors(r.skip);
+  const parts = [r.mode === 'solo' ? 'Solo' : 'Duel', r.op === 'mul' ? '×' : r.op === 'div' ? '÷' : '× ÷'];
+  parts.push(r.tables.length === B.length ? (r.skip ? '2–9' : '1–10') : 'Tables ' + r.tables.join(','));
+  if (r.skip && r.tables.length !== B.length) parts.push('no ×1/×10');
+  parts.push(r.timer ? 'Timer' : 'No timer');
+  return parts.join(' · ');
+}
+const cfgKey = r => { const n = norm(r); return [n.mode, n.op, n.tables.join(','), n.skip, n.timer].join('|'); };
 function scoreRow(name, score, N, tag){
   const li = el('li', 'row');
-  const who = tag ? el('div', 'row-wrap') : el('span', 'who', name);
-  if (tag) { who.append(el('span', 'who', name), el('span', 'tag', tag)); }
+  const w = tag ? el('div', 'row-wrap') : el('span', 'who', name);
+  if (tag) w.append(el('span', 'who', name), el('span', 'tag', tag));
   const val = el('span', 'val', String(score)); val.append(' ', el('small', null, `(of ${N})`));
-  li.append(who, el('span', 'dots'), val);
+  li.append(w, el('span', 'dots'), val);
   return li;
 }
 function results(){
   stopTimer();
-  const [a, b] = G.players;
-  if (!G.saved) {
-    G.saved = true;
-    const battles = store.get('battles', []);
-    battles.push({t:Date.now(), day:today(), names:[a.name, b.name], scores:[a.correct, b.correct], N:G.N, ...G.cfg});
-    store.set('battles', battles.slice(-500));
+  const battles = store.get('battles', []);
+  const rec = {t:Date.now(), day:today(), names:G.players.map(p => p.name), scores:G.players.map(p => p.correct), N:G.N, ...G.cfg};
+  const title = $('#r-title'), best = $('#r-best');
+  best.hidden = true; best.className = 'best';
+
+  if (G.solo) {
+    const p = G.players[0], pct = p.correct / G.N;
+    const prev = battles.filter(b => (b.mode === 'solo') && b.N === G.N && cfgKey(b) === cfgKey(rec) && b.names[0].toLowerCase() === p.name.toLowerCase());
+    const prevBest = prev.length ? Math.max(...prev.map(b => b.scores[0])) : null;
+    title.textContent = pct === 1 ? `Perfect, ${p.name}!` : pct >= .8 ? `Great job, ${p.name}!` : pct >= .5 ? `Well done, ${p.name}!` : `Good try, ${p.name}!`;
+    title.className = 'result-title win';
+    best.hidden = false;
+    if (prevBest === null) best.textContent = 'Your first game with these settings. Now try to beat it!';
+    else if (p.correct > prevBest) { best.textContent = `New personal best! (was ${prevBest})`; best.className = 'best new'; }
+    else best.textContent = `Your best: ${prevBest} of ${G.N}`;
+    if (pct >= .8 || (prevBest !== null && p.correct > prevBest)) { sfx.win(); confetti(); } else sfx.draw();
+  } else {
+    const [a, b] = G.players;
+    if (a.correct === b.correct) { title.textContent = 'Draw!'; title.className = 'result-title draw'; sfx.draw(); }
+    else { const w = a.correct > b.correct ? a : b; title.textContent = `${w.name} Wins!`; title.className = 'result-title win'; sfx.win(); confetti(); }
   }
-  const title = $('#r-title');
-  if (a.correct === b.correct) { title.textContent = 'Draw!'; title.className = 'result-title draw'; sfx.draw(); }
-  else { const w = a.correct > b.correct ? a : b; title.textContent = `${w.name} Wins!`; title.className = 'result-title win'; sfx.win(); confetti(); }
-  $('#r-tag').textContent = `${G.N} questions each · ` + tagOf(G.cfg);
+  if (!G.saved) { G.saved = true; battles.push(rec); store.set('battles', battles.slice(-500)); }
+
+  $('#r-tag').textContent = `${G.N} questions${G.solo ? '' : ' each'} · ` + tagOf(G.cfg);
   const sc = $('#r-scores'); sc.textContent = '';
   G.players.forEach(p => sc.append(scoreRow(p.name, p.correct, G.N)));
   const m = $('#r-mist'); m.textContent = '';
   G.players.forEach(p => {
-    const box = el('div'); box.append(el('h4', null, p.name));
+    const box = el('div');
+    if (!G.solo) box.append(el('h4', null, p.name));
     if (!p.mistakes.length) box.append(el('div', 'perfect', 'No mistakes. Perfect!'));
     else { const ul = el('ul'); p.mistakes.forEach(x => { const li = el('li'); li.append(el('b', null, x.q), el('span', null, x.given === null ? 'time ran out' : `you said ${x.given}`)); ul.append(li); }); box.append(ul); }
     m.append(box);
@@ -556,13 +678,18 @@ function showDaily(fromGame){
   flowFromGame = fromGame;
   const list = $('#d-list'); list.textContent = '';
   const items = store.get('battles', []).filter(r => r.day === today()).reverse();
-  if (!items.length) list.append(el('li', 'empty', 'No battles yet today. Start a game!'));
+  if (!items.length) list.append(el('li', 'empty', 'No games yet today. Start one!'));
   items.forEach(r => {
-    const [s0, s1] = r.scores;
-    const label = s0 === s1 ? `Draw: ${r.names[0]} & ${r.names[1]}` : `${s0 > s1 ? r.names[0] : r.names[1]} wins`;
     const li = el('li', 'row'), wrap = el('div', 'row-wrap');
-    wrap.append(el('span', 'who', label), el('span', 'tag', `${r.N} each · ` + tagOf(r)));
-    li.append(wrap, el('span', 'dots'), el('span', 'val', `${Math.max(s0,s1)} vs ${Math.min(s0,s1)}`));
+    let label, val;
+    if ((r.mode || 'duel') === 'solo') { label = r.names[0]; val = `${r.scores[0]} of ${r.N}`; }
+    else {
+      const [s0, s1] = r.scores;
+      label = s0 === s1 ? `Draw: ${r.names[0]} & ${r.names[1]}` : `${s0 > s1 ? r.names[0] : r.names[1]} wins`;
+      val = `${Math.max(s0,s1)} vs ${Math.min(s0,s1)}`;
+    }
+    wrap.append(el('span', 'who', label), el('span', 'tag', `${r.N} questions · ` + tagOf(r)));
+    li.append(wrap, el('span', 'dots'), el('span', 'val', val));
     list.append(li);
   });
   show('s-daily');
